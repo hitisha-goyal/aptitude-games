@@ -7,6 +7,7 @@ const screens = {
 const setupBtn = document.getElementById('start-btn');
 const p1Input = document.getElementById('player1');
 const p2Input = document.getElementById('player2');
+const gameModeSelect = document.getElementById('game-mode');
 
 const turnIndicator = document.getElementById('turn-indicator');
 const p1TurnBadge = document.getElementById('p1-turn-badge');
@@ -34,7 +35,7 @@ const menuBtn = document.getElementById('menu-btn');
 // Game State
 let state = {
     p1Name: 'Player 1',
-    p2Name: 'Player 2',
+    p2Name: 'AI (CPU)',
     board: Array(14).fill(0),
     currentPlayer: 1,
     isGameOver: false,
@@ -43,7 +44,8 @@ let state = {
     timerSeconds: 15,
     timerInterval: null,
     timeRemaining: 0,
-    lastPlayedIndex: -1
+    lastPlayedIndex: -1,
+    gameMode: 'pva' // 'pvp' or 'pva'
 };
 
 let previousState = null;
@@ -56,9 +58,6 @@ const stoneColors = [
     'linear-gradient(135deg, #82E0AA, #D5F5E3)', // Soft Green
     'linear-gradient(135deg, #C39BD3, #EBDEF0)'  // Soft Purple
 ];
-
-// In a real mancala, stones don't technically belong to specific pits once moving, 
-// so we'll just randomly assign colors to the count when rendering.
 
 function init() {
     timerToggle.addEventListener('change', (e) => {
@@ -87,7 +86,6 @@ function init() {
     // Attach click listeners to pits
     for(let i=0; i<14; i++) {
         if(i === 6 || i === 13) continue; // Skip stores
-        
         const pit = document.getElementById(`pit-${i}`);
         pit.addEventListener('click', () => handlePitClick(i));
     }
@@ -96,19 +94,18 @@ function init() {
 function showScreen(screenId) {
     Object.values(screens).forEach(s => {
         s.classList.remove('active');
-        setTimeout(() => s.classList.add('hidden'), 500);
+        s.classList.add('hidden');
     });
     
-    setTimeout(() => {
-        screens[screenId].classList.remove('hidden');
-        void screens[screenId].offsetWidth;
-        screens[screenId].classList.add('active');
-    }, 500);
+    screens[screenId].classList.remove('hidden');
+    void screens[screenId].offsetWidth;
+    screens[screenId].classList.add('active');
 }
 
 function startGame() {
+    state.gameMode = gameModeSelect.value;
     state.p1Name = p1Input.value.trim() || 'Player 1';
-    state.p2Name = p2Input.value.trim() || 'Player 2';
+    state.p2Name = state.gameMode === 'pva' ? 'AI (CPU)' : (p2Input.value.trim() || 'Player 2');
     
     p1NameDisplay.textContent = state.p1Name;
     p2NameDisplay.textContent = state.p2Name;
@@ -130,13 +127,13 @@ function startGame() {
 
 function startTimer() {
     stopTimer();
-    if (!state.useTimer || state.isGameOver) return;
+    if (!state.useTimer || state.isGameOver || (state.gameMode === 'pva' && state.currentPlayer === 2)) return;
     
     state.timeRemaining = state.timerSeconds;
     timeLeftSpan.textContent = state.timeRemaining;
     
     state.timerInterval = setInterval(() => {
-        if (state.isAnimating) return; // Pause timer during animation
+        if (state.isAnimating) return; 
         state.timeRemaining--;
         timeLeftSpan.textContent = state.timeRemaining;
         
@@ -156,11 +153,13 @@ function startTimer() {
 }
 
 function stopTimer() {
-    if (state.timerInterval) clearInterval(state.timerInterval);
+    if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+    }
 }
 
 function resetGame() {
-    // 4 stones in each pit, 0 in stores
     for(let i=0; i<14; i++) {
         state.board[i] = (i === 6 || i === 13) ? 0 : 4;
     }
@@ -178,7 +177,7 @@ function resetGame() {
     
     stopTimer();
     updateUI();
-    setStatus("Select a pit to start sowing.");
+    setStatus("Your Turn. Select a pit to start sowing.");
 }
 
 function handleUndo() {
@@ -192,12 +191,6 @@ function handleUndo() {
     undoBtn.disabled = true;
     state.isGameOver = false;
     
-    document.querySelectorAll('.receiving').forEach(el => el.classList.remove('receiving'));
-    
-    if (state.useTimer && !state.isGameOver) {
-        state.timeRemaining = state.timerSeconds;
-    }
-    
     updateUI();
     setStatus("Move undone. Please play again.");
 }
@@ -205,41 +198,29 @@ function handleUndo() {
 function renderStones(pitElement, count) {
     const container = pitElement.querySelector('.stone-container');
     const counter = pitElement.querySelector('.stone-count');
-    
     counter.textContent = count;
     
-    // Animate rendering by clearing and repopulating 
-    // Wait, to prevent massive DOM manipulation flashing, only append/remove what's needed.
     const currentStones = container.children.length;
-    
     if (count > currentStones) {
-        // Add stones
         for(let i = 0; i < (count - currentStones); i++) {
             const stone = document.createElement('div');
             stone.className = 'stone dropped';
-            // pick random color
             stone.style.background = stoneColors[Math.floor(Math.random() * stoneColors.length)];
-            // Add slight random rotation to look natural
             stone.style.transform = `rotate(${Math.random() * 360}deg)`;
             container.appendChild(stone);
         }
     } else if (count < currentStones) {
-        // Remove stones
         for(let i = 0; i < (currentStones - count); i++) {
-            if(container.lastChild) {
-                container.removeChild(container.lastChild);
-            }
+            if(container.lastChild) container.removeChild(container.lastChild);
         }
     }
 }
 
 function updateUI() {
-    // Render Board
     for(let i=0; i<14; i++) {
         const pitEl = document.getElementById(`pit-${i}`);
         renderStones(pitEl, state.board[i]);
         
-        // Update validity styling
         if (i !== 6 && i !== 13 && !state.isGameOver) {
             const isP1Turn = state.currentPlayer === 1;
             const isP1Pit = i >= 0 && i <= 5;
@@ -258,16 +239,11 @@ function updateUI() {
                 pitEl.classList.add('invalid');
             }
             
-            // Add last played highlight
-            if (i === state.lastPlayedIndex) {
-                pitEl.classList.add('last-played');
-            } else {
-                pitEl.classList.remove('last-played');
-            }
+            if (i === state.lastPlayedIndex) pitEl.classList.add('last-played');
+            else pitEl.classList.remove('last-played');
         }
     }
     
-    // Update Headers
     const p1Row = document.querySelector('.p1-row');
     const p2Row = document.querySelector('.p2-row');
     
@@ -285,9 +261,14 @@ function updateUI() {
         p1TurnBadge.classList.add('inactive-turn');
         if (p2Row) p2Row.classList.remove('inactive-side');
         if (p1Row) p1Row.classList.add('inactive-side');
+
+        // Check for AI Turn
+        if (state.gameMode === 'pva' && !state.isAnimating && !state.isGameOver) {
+            setTimeout(aiMove, 1000);
+        }
     }
     
-    if (state.useTimer && !state.isAnimating && !state.isGameOver) {
+    if (state.useTimer && !state.isAnimating && !state.isGameOver && (state.gameMode !== 'pva' || state.currentPlayer === 1)) {
         startTimer();
     }
 }
@@ -298,35 +279,37 @@ function setStatus(msg) {
 
 async function handlePitClick(index) {
     if (state.isGameOver || state.isAnimating) return;
+    if (state.gameMode === 'pva' && state.currentPlayer === 2) return;
     
-    // Check if valid pit for current player
     const isP1 = state.currentPlayer === 1;
     if (isP1 && (index < 0 || index > 5)) return;
     if (!isP1 && (index < 7 || index > 12)) return;
     
-    let stones = state.board[index];
-    if (stones === 0) return; // Empty pit
+    if (state.board[index] === 0) return;
     
-    // Save state for undo
+    executeMove(index);
+}
+
+async function executeMove(index) {
+    const isP1 = state.currentPlayer === 1;
+    let stones = state.board[index];
+    
     previousState = {
         board: [...state.board],
         currentPlayer: state.currentPlayer,
         lastPlayedIndex: state.lastPlayedIndex
     };
-    if (undoBtn) undoBtn.disabled = true; // Disable until animation ends
+    if (undoBtn) undoBtn.disabled = true;
     
     state.isAnimating = true;
     state.lastPlayedIndex = index;
-    
-    // Pick up stones
     state.board[index] = 0;
     updateUI();
-    setStatus("Sowing stones...");
+    setStatus("Sowing...");
     
     let currentIndex = index;
     let previousIndex = index;
     
-    // We will do a simple timeout based animation loop
     const sowNext = () => {
         return new Promise(resolve => {
             if (stones <= 0) {
@@ -336,12 +319,9 @@ async function handlePitClick(index) {
             }
             
             currentIndex = (currentIndex + 1) % 14;
-            
-            // Skip opponent's store
             if (isP1 && currentIndex === 13) currentIndex = 0;
             if (!isP1 && currentIndex === 6) currentIndex = 7;
             
-            // Get physical locations for flying stone
             const originEl = document.getElementById(`pit-${previousIndex}`);
             const destEl = document.getElementById(`pit-${currentIndex}`);
             const originRect = originEl.getBoundingClientRect();
@@ -350,89 +330,107 @@ async function handlePitClick(index) {
             const flyingStone = document.createElement('div');
             flyingStone.className = 'stone flying-stone';
             flyingStone.style.background = stoneColors[Math.floor(Math.random() * stoneColors.length)];
-            
-            // Start position (center of previous pit)
             flyingStone.style.left = `${originRect.left + originRect.width/2 - 7}px`;
             flyingStone.style.top = `${originRect.top + originRect.height/2 - 7}px`;
-            
             document.body.appendChild(flyingStone);
             
-            // Highlight dest pit
             document.querySelectorAll('.receiving').forEach(el => el.classList.remove('receiving'));
             destEl.classList.add('receiving');
             
-            void flyingStone.offsetWidth; // Force CSS reflow
-            
-            // End position (center of new pit)
+            void flyingStone.offsetWidth; 
             flyingStone.style.left = `${destRect.left + destRect.width/2 - 7}px`;
             flyingStone.style.top = `${destRect.top + destRect.height/2 - 7}px`;
             
             setTimeout(() => {
-                // Arrived
                 flyingStone.remove();
                 state.board[currentIndex]++;
                 stones--;
                 updateUI();
-                
-                previousIndex = currentIndex; // Next stone flies from this pit
-                
-                setTimeout(() => {
-                    sowNext().then(resolve);
-                }, 50); // 50ms pause between drops
-            }, 300); // 300ms transit time
+                previousIndex = currentIndex;
+                setTimeout(() => sowNext().then(resolve), 40); 
+            }, 250); // Faster transit for performance
         });
     };
     
     await sowNext();
     
-    // Sowing finished, evaluate consequences
     let finalIndex = currentIndex;
-    
-    // 1. Extra turn logic
     const storeIndex = isP1 ? 6 : 13;
+    
     if (finalIndex === storeIndex) {
-        setStatus(`Ended in store! ${isP1 ? state.p1Name : state.p2Name} gets an extra turn.`);
+        setStatus(`Extra turn!`);
         state.isAnimating = false;
         if (undoBtn && previousState) undoBtn.disabled = false;
         if (!checkGameOver()) {
-            updateUI(); // restarts timer since isAnimating is false
+            updateUI();
+            if (state.gameMode === 'pva' && state.currentPlayer === 2) {
+                setTimeout(aiMove, 600);
+            }
         }
         return; 
     }
     
-    // 2. Capture logic
-    // If landed in empty pit ON OWN SIDE, and opposite pit has stones
     const isOwnSide = isP1 ? (finalIndex >= 0 && finalIndex <= 5) : (finalIndex >= 7 && finalIndex <= 12);
-    
     if (isOwnSide && state.board[finalIndex] === 1) {
         const oppositeIndex = 12 - finalIndex;
         const oppositeStones = state.board[oppositeIndex];
-        
         if (oppositeStones > 0) {
             setStatus("Capture!");
-            await new Promise(r => setTimeout(r, 600)); // Pause to let user see
-            
-            // Move own stone + opposite stones to store
+            await new Promise(r => setTimeout(r, 400));
             state.board[storeIndex] += (1 + oppositeStones);
             state.board[finalIndex] = 0;
             state.board[oppositeIndex] = 0;
-            
             updateUI();
         }
     }
     
-    // Check game over
     if (!checkGameOver()) {
-        // Switch turn
         state.currentPlayer = isP1 ? 2 : 1;
-        setStatus("Select a pit.");
         state.isAnimating = false;
         if (undoBtn && previousState) undoBtn.disabled = false;
         updateUI();
     } else {
         state.isAnimating = false;
-        if (undoBtn) undoBtn.disabled = true; // no undoing game over for now
     }
+}
+
+function aiMove() {
+    if (state.isGameOver || !state.isAnimating === false && state.currentPlayer === 1) return;
+    
+    // AI: Simple Minimax-like logic
+    const AI_PITS = [7, 8, 9, 10, 11, 12];
+    const validMoves = AI_PITS.filter(i => state.board[i] > 0);
+    
+    if (validMoves.length === 0) return;
+    
+    // Choose move
+    let bestMove = validMoves[0];
+    let bestScore = -100;
+    
+    validMoves.forEach(move => {
+        let score = 0;
+        const stones = state.board[move];
+        const lastIndex = (move + stones) % 14;
+        
+        // Priority 1: Extra Turn
+        if (lastIndex === 13) score += 10;
+        
+        // Priority 2: Captures
+        if (lastIndex >= 7 && lastIndex <= 12 && state.board[lastIndex] === 0) {
+            const oppPit = 12 - lastIndex;
+            if (state.board[oppPit] > 0) score += (state.board[oppPit] + 1);
+        }
+        
+        // Heuristic: move stones closer to store to avoid giving captures
+        score += (move - 6); 
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = move;
+        }
+    });
+
+    executeMove(bestMove);
 }
 
 function checkGameOver() {
@@ -441,29 +439,13 @@ function checkGameOver() {
     
     if (p1PitsEmpty || p2PitsEmpty) {
         state.isGameOver = true;
-        
-        // Move remaining stones to stores
-        let p1Remaining = 0;
-        let p2Remaining = 0;
-        
-        for (let i = 0; i < 6; i++) {
-            p1Remaining += state.board[i];
-            state.board[i] = 0;
-        }
-        for (let i = 7; i < 13; i++) {
-            p2Remaining += state.board[i];
-            state.board[i] = 0;
-        }
-        
+        let p1Remaining = 0, p2Remaining = 0;
+        for (let i = 0; i < 6; i++) { p1Remaining += state.board[i]; state.board[i] = 0; }
+        for (let i = 7; i < 13; i++) { p2Remaining += state.board[i]; state.board[i] = 0; }
         state.board[6] += p1Remaining;
         state.board[13] += p2Remaining;
-        
         updateUI();
-        
-        setTimeout(() => {
-            endGame();
-        }, 1000);
-        
+        setTimeout(endGame, 800);
         return true;
     }
     return false;
@@ -472,7 +454,6 @@ function checkGameOver() {
 function endGame() {
     const p1Score = state.board[6];
     const p2Score = state.board[13];
-    
     p1ScoreText.textContent = `${state.p1Name}: ${p1Score}`;
     p2ScoreText.textContent = `${state.p2Name}: ${p2Score}`;
     
@@ -486,9 +467,7 @@ function endGame() {
         winnerText.textContent = "It's a Tie!";
         winnerText.style.color = '#fff';
     }
-    
     modal.classList.remove('hidden');
 }
 
-// Start app
 document.addEventListener('DOMContentLoaded', init);
