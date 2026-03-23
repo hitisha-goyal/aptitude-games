@@ -1,0 +1,586 @@
+:root {
+    --bg-dark: #120e0a;
+    --wood-light: #d4a373;
+    --wood-base: #a06b3e;
+    --wood-dark: #6d411d;
+    --wood-shadow: #3f220c;
+    
+    --pit-bg: rgba(45, 25, 12, 0.8);
+    --pit-border: rgba(0, 0, 0, 0.4);
+    
+    --p1-color: #F0B27A; /* Softer muted orange */
+    --p2-color: #5DADE2; /* Softer muted blue */
+    
+    --font-head: 'Cinzel', serif;
+    --font-body: 'Lato', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at center, #2a1f18 0%, #0a0705 100%);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+/* Utilities */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+
+/* Screens */
+.screen {
+    width: 100%;
+    max-width: 1200px;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    position: absolute;
+    pointer-events: none;
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: all;
+    position: relative;
+    z-index: 10;
+}
+
+/* Wood panels */
+.wood-panel {
+    background: linear-gradient(135deg, var(--wood-base), var(--wood-dark));
+    border: 4px solid var(--wood-shadow);
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 
+        0 20px 50px rgba(0,0,0,0.8),
+        inset 0 2px 5px rgba(255,255,255,0.2),
+        inset 0 -5px 15px rgba(0,0,0,0.4);
+    width: 100%;
+    max-width: 500px;
+}
+
+.game-title {
+    font-family: var(--font-head);
+    font-size: 3.5rem;
+    color: #F8C471; /* Softer title */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6), 0 0 15px rgba(248, 196, 113, 0.3);
+    margin-bottom: 0.5rem;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #eaddd0;
+    margin-bottom: 2.5rem;
+    font-style: italic;
+}
+
+/* Inputs */
+.input-group {
+    margin-bottom: 2rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: #fcebd7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 2px solid var(--wood-shadow);
+    background: rgba(30, 15, 5, 0.7);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.5);
+    transition: all 0.3s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--wood-light);
+    background: rgba(45, 25, 12, 0.9);
+}
+
+/* Buttons */
+.classic-btn {
+    width: 100%;
+    padding: 1.2rem;
+    background: linear-gradient(to bottom, #D38C7D, #C06C59);
+    border: 2px solid #8A4F41;
+    border-radius: 8px;
+    color: white;
+    font-family: var(--font-head);
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #8A4F41, 0 10px 20px rgba(0,0,0,0.3);
+    transition: all 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.classic-btn:hover {
+    background: linear-gradient(to bottom, #E0A093, #CC7E6D);
+}
+
+.classic-btn:active {
+    transform: translateY(6px);
+    box-shadow: 0 0 0 #8A4F41, 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.alt-btn {
+    width: 100%;
+    padding: 1rem;
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    color: white;
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.alt-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.1);
+}
+
+.alt-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.secondary-btn {
+    background: linear-gradient(to bottom, #8C3A3A, #612222);
+    border-color: #3D1212;
+    box-shadow: 0 4px 0 #3D1212, 0 8px 15px rgba(0,0,0,0.3);
+}
+
+.secondary-btn:hover {
+    background: linear-gradient(to bottom, #A14646, #732C2C);
+}
+
+.secondary-btn:active {
+    box-shadow: 0 0 0 #3D1212, 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.control-panel {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.control-panel button {
+    margin-top: 0;
+    width: auto;
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+}
+
+/* Game Layout */
+.game-container {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.4);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.turn-text {
+    font-family: var(--font-head);
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+.player-badge {
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    opacity: 1;
+    transition: all 0.4s;
+    border: 2px solid transparent;
+}
+
+.player-badge.inactive-turn {
+    opacity: 0.3;
+    transform: scale(0.92);
+    filter: grayscale(40%);
+}
+
+.p1-badge { background: var(--p1-color); color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.p2-badge { background: var(--p2-color); color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+/* The Board */
+.mancala-board {
+    display: flex;
+    background: linear-gradient(180deg, var(--wood-base), var(--wood-dark));
+    padding: 2rem 2rem 3.5rem 2rem;
+    border-radius: 60px;
+    box-shadow: 
+        0 30px 60px rgba(0,0,0,0.8),
+        inset 0 4px 10px rgba(255,255,255,0.3),
+        inset 0 -10px 20px rgba(0,0,0,0.5);
+    border: 4px solid var(--wood-shadow);
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+/* Pits and Stores */
+.store, .pit {
+    background: var(--pit-bg);
+    border: 2px solid var(--pit-border);
+    border-radius: 40px;
+    box-shadow: 
+        inset 0 15px 25px rgba(0,0,0,0.9),
+        inset 0 0 10px rgba(0,0,0,0.5),
+        0 2px 4px rgba(255,255,255,0.1);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.store {
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.pits-grid {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    justify-content: space-between;
+    overflow: visible;
+}
+
+.pits-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 10px;
+    padding-bottom: 38px;
+    border-radius: 50px;
+    border: 2px solid transparent;
+    transition: all 0.4s ease;
+    overflow: visible;
+}
+
+.pits-row.inactive-side {
+    opacity: 0.45;
+    filter: grayscale(30%);
+    pointer-events: none;
+}
+
+.pit {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    overflow: visible;
+}
+
+.pit:hover {
+    box-shadow: 
+        inset 0 10px 20px rgba(0,0,0,0.7),
+        0 0 15px rgba(255,255,255,0.2);
+}
+
+.pit.valid:hover {
+    background: rgba(60, 35, 20, 0.8);
+    transform: scale(1.05);
+}
+
+.pit.invalid {
+    cursor: not-allowed;
+}
+
+.pit.last-played {
+    box-shadow: 0 0 20px #85C1E9, inset 0 0 15px #85C1E9 !important;
+    border-color: #85C1E9;
+}
+
+.board-divider {
+    height: 4px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin: 0 1rem;
+}
+
+/* Stones UI */
+.stone-count {
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #fcebd7;
+    background: rgba(20, 10, 5, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 2px 8px;
+    min-width: 28px;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    pointer-events: none;
+}
+
+.receiving {
+    box-shadow: 0 0 25px #ffcc00, inset 0 0 15px #ffcc00 !important;
+    border-color: #ffcc00;
+    transform: scale(1.05);
+    z-index: 5;
+}
+
+.store-label {
+    position: absolute;
+    font-family: var(--font-head);
+    font-size: 1.1rem;
+    color: #eaddd0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    opacity: 0.8;
+}
+
+.p2-store .store-label {
+    bottom: -35px;
+}
+
+.p1-store .store-label {
+    top: -35px;
+}
+
+.store .stone-count {
+    bottom: -36px;
+}
+
+.p2-store .stone-count {
+    bottom: auto;
+    top: -36px;
+}
+
+.stone-container {
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    pointer-events: none; /* Let clicks pass to pit */
+}
+
+.store .stone-container {
+    height: 90%;
+    width: 80%;
+    border-radius: 30px;
+}
+
+.stone {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin: 2px;
+    box-shadow: -2px -2px 4px rgba(0,0,0,0.5) inset, 1px 1px 2px rgba(255,255,255,0.5) inset, 2px 5px 5px rgba(0,0,0,0.4);
+    /* Stones will be assigned random beautiful colors in JS */
+}
+
+/* Animations */
+@keyframes dropIn {
+    0% { transform: translateY(-30px) scale(1.3); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.stone.dropped {
+    animation: dropIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.flying-stone {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+    transition: left 0.3s ease-in-out, top 0.3s ease-in-out;
+    box-shadow: 0 15px 20px rgba(0,0,0,0.6), inset -2px -2px 4px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.8);
+    transform: scale(1.6);
+}
+
+.status-message {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 300;
+    color: #eaddd0;
+    height: 30px;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.score-breakdown {
+    margin: 2rem 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.score-breakdown p { margin: 0.5rem 0; }
+
+/* ===== RESPONSIVE / MOBILE ===== */
+@media (max-width: 700px) {
+    body {
+        align-items: flex-start;
+        padding: 1rem 0;
+    }
+
+    .game-container {
+        gap: 1.2rem;
+        padding: 0 0.5rem;
+    }
+
+    .game-header {
+        padding: 0.6rem 1rem;
+        border-radius: 30px;
+    }
+
+    .player-badge {
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .turn-text {
+        font-size: 1.3rem;
+    }
+
+    /* Board goes vertical: stores on top/bottom, pits in middle */
+    .mancala-board {
+        flex-direction: column;
+        align-items: stretch;
+        border-radius: 28px;
+        padding: 1rem 1rem 2.5rem 1rem;
+        gap: 0.8rem;
+    }
+
+    /* Stores become horizontal bars */
+    .store {
+        width: 100%;
+        height: 64px;
+        border-radius: 20px;
+        flex-shrink: 0;
+    }
+
+    .pits-grid {
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .pits-row {
+        gap: 0.4rem;
+        padding: 8px 6px;
+        padding-bottom: 34px;
+        border-radius: 16px;
+    }
+
+    .pit {
+        width: 44px;
+        height: 44px;
+    }
+
+    .stone { width: 8px; height: 8px; margin: 1px; }
+
+    .stone-count {
+        font-size: 0.75rem;
+        padding: 1px 6px;
+        bottom: -28px;
+    }
+
+    /* Store stone counts and labels repositioned for horizontal store */
+    .store .stone-count {
+        bottom: auto;
+        top: 50%;
+        left: 1.5rem;
+        transform: translateY(-50%);
+    }
+    .p2-store .stone-count {
+        top: 50%;
+        left: 1.5rem;
+        transform: translateY(-50%);
+    }
+    .store-label {
+        font-size: 0.85rem;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        bottom: auto;
+    }
+    .p2-store .store-label,
+    .p1-store .store-label {
+        top: 50%;
+        bottom: auto;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .wood-panel {
+        padding: 2rem 1.5rem;
+    }
+
+    .game-title { font-size: 2.5rem; }
+
+    .control-panel {
+        gap: 0.8rem;
+    }
+
+    .control-panel button {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+}
