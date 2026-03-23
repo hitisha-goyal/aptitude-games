@@ -44,6 +44,14 @@
             <p class="subtitle">An ancient game of strategy</p>
             
             <div class="input-group">
+                <label for="game-mode">Game Mode</label>
+                <select id="game-mode" class="mode-select">
+                    <option value="pvp">Player vs Player</option>
+                    <option value="pva" selected>Player vs AI (CPU)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
                 <label for="player1">Player 1 (Bottom)</label>
                 <input type="text" id="player1" placeholder="Enter Player 1 Name" value="Player 1">
             </div>
