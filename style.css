@@ -208,17 +208,6 @@ nav {
     color: var(--text-secondary);
 }
 
-.ad-zone {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed var(--glass-border);
-    padding: 2rem;
-    text-align: center;
-    border-radius: 12px;
-    margin: 2rem 5%;
-    color: var(--text-secondary);
-    font-style: italic;
-    font-size: 0.8rem;
-}
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
