@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(card);
     });
 
-   
+
+
     console.log("Aptitude Hub Logic Initialized.");
 });
