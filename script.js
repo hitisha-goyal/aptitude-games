@@ -18,11 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(card);
     });
 
-    // Revenue Dashboard Insight (Simulated)
-    const revenueBtn = document.querySelector('.ad-link');
-    revenueBtn.addEventListener('click', () => {
-        alert('Revenue Dashboard Access:\n(Simulation)\n\nEstimated Monthly Traffic: 24,000+ Session\nProjected AdSense CPM: $4.50\nTarget Revenue: $108.00/month');
-    });
-
+   
     console.log("Aptitude Hub Logic Initialized.");
 });
